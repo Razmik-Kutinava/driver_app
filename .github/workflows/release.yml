@@ -1,0 +1,68 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-android:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build APK
+      run: flutter build apk --release
+
+    - name: Build App Bundle
+      run: flutter build appbundle --release
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/app/outputs/flutter-apk/app-release.apk
+          build/app/outputs/bundle/release/app-release.aab
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ios:
+    name: Build iOS Release
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build iOS (no codesign)
+      run: flutter build ios --release --no-codesign
+
+    # Note: For actual iOS releases, you would need to setup code signing
+    # with proper certificates and provisioning profiles
