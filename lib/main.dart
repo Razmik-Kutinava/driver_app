@@ -20,29 +20,45 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализация Sentry для error tracking
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = 'YOUR_SENTRY_DSN_HERE'; // Replace with your Sentry DSN
-      options.tracesSampleRate = 1.0;
-      options.environment = SupabaseConfig.isDebug ? 'development' : 'production';
-      options.debug = SupabaseConfig.isDebug;
-    },
-    appRunner: () async {
-      // Инициализация Supabase
-      await Supabase.initialize(
-        url: SupabaseConfig.url,
-        anonKey: SupabaseConfig.anonKey,
-      );
-
-      // Запрос разрешений (только для мобильных платформ)
-      if (!kIsWeb) {
-        await _requestPermissions();
-      }
-
-      runApp(const LogisticDriverApp());
-    },
+  // Sentry DSN - замените на реальный ключ для production
+  const sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: '',
   );
+
+  // Инициализация Sentry только если DSN настроен
+  if (sentryDsn.isNotEmpty && sentryDsn.startsWith('https://')) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 1.0;
+        options.environment = SupabaseConfig.isDebug ? 'development' : 'production';
+        options.debug = SupabaseConfig.isDebug;
+      },
+      appRunner: () async {
+        await _initializeApp();
+      },
+    );
+  } else {
+    // Запуск без Sentry для разработки
+    debugPrint('⚠️ Sentry не инициализирован (DSN не настроен)');
+    await _initializeApp();
+  }
+}
+
+Future<void> _initializeApp() async {
+  // Инициализация Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
+
+  // Запрос разрешений (только для мобильных платформ)
+  if (!kIsWeb) {
+    await _requestPermissions();
+  }
+
+  runApp(const LogisticDriverApp());
 }
 
 Future<void> _requestPermissions() async {

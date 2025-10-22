@@ -86,6 +86,16 @@ static const String anonKey = 'your-anon-key-here';
 
 ## 🚀 Запуск
 
+### Development (без Sentry)
+```bash
+flutter run
+```
+
+### С Sentry error tracking
+```bash
+flutter run --dart-define=SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+```
+
 ### Android
 ```bash
 flutter run

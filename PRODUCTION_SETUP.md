@@ -27,10 +27,17 @@ DEBUG_MODE=false
 2. Установите `isDebug = false` для production
 
 ### Настройте Sentry
-Откройте `lib/main.dart` и замените:
-```dart
-options.dsn = 'YOUR_SENTRY_DSN_HERE';
+Sentry теперь настраивается через environment variable:
+
+```bash
+# Для production build с Sentry:
+flutter run --dart-define=SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# Или в release build:
+flutter build apk --dart-define=SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 ```
+
+Для локальной разработки Sentry автоматически отключен.
 
 ## 🗺️ Шаг 3: Google Maps
 
